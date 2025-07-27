@@ -13,3 +13,7 @@ so here we are.. i am making a counter app using raylib.
 ## Dependencies
 
 * Raylib v5.5
+
+## Assets
+
+Weapon assets were downloaded from [monster hunter wiki](https://monsterhunterwiki.org/wiki/MHWilds/Weapons)
