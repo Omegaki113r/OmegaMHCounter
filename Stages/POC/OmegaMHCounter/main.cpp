@@ -6,6 +6,9 @@
 #include <raylib.h>
 
 #include "constants.hpp"
+#include "container/container.hpp"
+#include "label/label.hpp"
+#include "button/button.hpp"
 
 struct Weapon
 {
@@ -24,30 +27,92 @@ void load_images_and_textures();
 int main()
 {
 //    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(400, 200, "OmegaMHCounter");
+    InitWindow(325, 102, "OmegaMHCounter"); // lazy to calculate in head :-)
     
     load_images_and_textures();
     
     SetTargetFPS(60);
+    
+    const auto default_padding{10.0f};
+    
+    
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(WHITE);
         
-        DrawFPS(10, 10);
+        const auto screen_width{GetScreenWidth()};
+        const auto screen_height{GetScreenHeight()};
         
-        static int counter{0};
-        static int current_weapon{0};
-        ++counter;
-        if(0 == counter%60)
-        {
-            current_weapon++;
-        }
+        auto panel{
+            ::Omega::Widget::Container()
+                .size({(float)weapons[0]->texture.height, (float)weapons[0]->texture.height})
+                .position({default_padding,default_padding})
+                .color({48,48,48,255})
+        };
+        panel.draw();
         
-        DrawTextureV(weapons[current_weapon%14]->texture, {20,20}, WHITE);
-        DrawText(weapons[current_weapon%14]->name.data(), 100, 100, 32, BLACK);
+        DrawTextureV(weapons[0]->texture, {default_padding,default_padding}, WHITE);
         
-        DrawRectangleV({50,150}, {32,32}, BLACK);
-        DrawText("-", 50 + 32/4, 150 + 32/4, 32, WHITE); // i need to look into how to center letters on the box
+        auto weapon_label{
+            ::Omega::Widget::Label()
+                .text(weapons[0]->name.data())
+                .position({panel.m_position.x + weapons[0]->texture.width + default_padding,default_padding})
+                .font_size(31)
+                .color(BLACK)
+        };
+        weapon_label.draw();
+        
+        auto neg_button{
+            ::Omega::Widget::Button()
+                .position({panel.m_position.x + weapons[0]->texture.width + default_padding, default_padding + weapon_label.m_font_size + default_padding})
+                .size({31,31})
+                .background_color(BLACK)
+                .text("-")
+                .font_size(31)
+                .foreground_color(WHITE)
+        };
+        neg_button.draw();
+        
+        auto counter_label{
+            ::Omega::Widget::Label()
+                .position({neg_button.m_container.m_position.x + neg_button.m_container.m_size.x + default_padding, default_padding + weapon_label.m_font_size + default_padding})
+                .font_size(31)
+                .text(std::format("{} / {}", weapons[0]->current_attempt, weapons[0]->total_allowed))
+                .color(RED)
+        };
+        counter_label.draw();
+        
+        auto pos_button{
+            ::Omega::Widget::Button()
+                .position({counter_label.m_position.x + counter_label.get_measured_size().x + default_padding,counter_label.m_position.y})
+                .size({32,32})
+                .background_color(BLACK)
+                .text("+")
+                .font_size(32)
+                .foreground_color(WHITE)
+        };
+        pos_button.draw();
+        
+        // 72 - 10 = 62 => 62 / 2 = 31
+        
+//        DrawFPS(10, 10);
+//        
+//        static int counter{0};
+//        static int current_weapon{0};
+//        ++counter;
+//        if(0 == counter%60)
+//        {
+//            current_weapon++;
+//        }
+        
+
+      
+
+        /*
+            i have no idea at the moment how to handle the button presses in a generic way yet. that i
+            will think about and implement that on the next video. maybe i will think/try implment it in a video too. :-)
+         */
+
         const auto mouse_pos{GetMousePosition()};
         if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON) &&
            mouse_pos.x > 50 &&
@@ -56,15 +121,16 @@ int main()
            mouse_pos.y < 150 + 32
            )
         {
-            weapons[current_weapon%14]->current_attempt++;
+            weapons[0]->current_attempt++;
         }
+
         
-        DrawText(std::format("{} / {}", weapons[current_weapon%14]->current_attempt, weapons[current_weapon%14]->total_allowed).c_str(), 100, 150, 32, RED);
-        
-        DrawRectangleV({200,150}, {32,32}, BLACK);
-        DrawText("+", 200 + 32/4, 150 + 32/4, 32, WHITE); // i need to look into how to center letters on the box
+
+//        DrawText(std::format("{} / {}", weapons[current_weapon%14]->current_attempt, weapons[current_weapon%14]->total_allowed).c_str(), 100, 150, 32, RED);
         
         
+
+
         EndDrawing();
     }
     CloseWindow();
