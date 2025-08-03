@@ -4,11 +4,13 @@
 
 #include "raylib.h"
 
+#include "base/base.hpp"
+
 namespace Omega
 {
     namespace Widget
     {
-        struct Label
+        struct Label : public Base
         {
             std::string m_text{""};
             Vector2 m_position{0.0f,0.0f};
@@ -20,6 +22,8 @@ namespace Omega
             Label& position(Vector2 position);
             Label& color(Color color);
             Label& font_size(int font_size);
+            Label& on_hover(std::function<void(void)> on_hover_handler) override {}
+            Label& on_pressed(std::function<void(void)> on_pressed_handler) override{}
             
             void measure();
             Vector2 get_measured_size();

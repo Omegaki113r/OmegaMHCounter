@@ -6,21 +6,21 @@ namespace Omega
 {
     namespace Widget
     {
-        Container& Container::position(Vector2 position)
+        Container& Container::position(Vector2 in_position)
         {
-            m_position = position;
+            m_position = in_position;
             return *this;
         }
         
-        Container& Container::size(Vector2 size)
+        Container& Container::size(Vector2 in_size)
         {
-            m_size = size;
+            m_size = in_size;
             return *this;
         }
     
-        Container& Container::color(Color color)
+        Container& Container::color(Color in_color)
         {
-            m_color = color;
+            m_color = in_color;
             return *this;
         }
     

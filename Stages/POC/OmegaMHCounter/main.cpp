@@ -9,6 +9,7 @@
 #include "container/container.hpp"
 #include "label/label.hpp"
 #include "button/button.hpp"
+#include "input/input.hpp"
 
 struct Weapon
 {
@@ -20,14 +21,15 @@ struct Weapon
     Weapon(const char* name, const char* path);
 };
 
+size_t current_selected_weapon{0};
 std::array<Weapon*,14> weapons;
 
 void load_images_and_textures();
 
 int main()
 {
-//    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(325, 102, "OmegaMHCounter"); // lazy to calculate in head :-)
+    SetConfigFlags(FLAG_WINDOW_TOPMOST);
+    InitWindow(425, 102, "OmegaMHCounter"); // lazy to calculate in head :-)
     
     load_images_and_textures();
     
@@ -45,31 +47,44 @@ int main()
         
         auto panel{
             ::Omega::Widget::Container()
-                .size({(float)weapons[0]->texture.height, (float)weapons[0]->texture.height})
+                .size({(float)weapons[current_selected_weapon]->texture.height, (float)weapons[current_selected_weapon]->texture.height})
                 .position({default_padding,default_padding})
                 .color({48,48,48,255})
         };
         panel.draw();
         
-        DrawTextureV(weapons[0]->texture, {default_padding,default_padding}, WHITE);
+        DrawTextureV(weapons[current_selected_weapon]->texture, {default_padding,default_padding}, WHITE);
         
         auto weapon_label{
             ::Omega::Widget::Label()
-                .text(weapons[0]->name.data())
-                .position({panel.m_position.x + weapons[0]->texture.width + default_padding,default_padding})
+                .text(weapons[current_selected_weapon]->name.data())
+                .position({panel.m_position.x + weapons[current_selected_weapon]->texture.width + default_padding,default_padding})
                 .font_size(31)
                 .color(BLACK)
         };
         weapon_label.draw();
         
-        auto neg_button{
+        ::Omega::Widget::Button neg_button{
             ::Omega::Widget::Button()
-                .position({panel.m_position.x + weapons[0]->texture.width + default_padding, default_padding + weapon_label.m_font_size + default_padding})
+                .position({panel.m_position.x + weapons[current_selected_weapon]->texture.width + default_padding, default_padding + weapon_label.m_font_size + default_padding})
                 .size({31,31})
                 .background_color(BLACK)
                 .text("-")
                 .font_size(31)
                 .foreground_color(WHITE)
+                .on_pressed( []()
+                {
+                    if(1 == weapons[current_selected_weapon]->current_attempt)
+                    {
+                        return;
+                    }
+                    weapons[current_selected_weapon]->current_attempt--;
+                })
+                .on_hover( [&]()
+                {
+                    neg_button.background_color(GREEN);
+                    neg_button.draw();
+                })
         };
         neg_button.draw();
         
@@ -77,12 +92,12 @@ int main()
             ::Omega::Widget::Label()
                 .position({neg_button.m_container.m_position.x + neg_button.m_container.m_size.x + default_padding, default_padding + weapon_label.m_font_size + default_padding})
                 .font_size(31)
-                .text(std::format("{} / {}", weapons[0]->current_attempt, weapons[0]->total_allowed))
+                .text(std::format("{} / {}", weapons[current_selected_weapon]->current_attempt, weapons[current_selected_weapon]->total_allowed))
                 .color(RED)
         };
         counter_label.draw();
         
-        auto pos_button{
+        ::Omega::Widget::Button pos_button{
             ::Omega::Widget::Button()
                 .position({counter_label.m_position.x + counter_label.get_measured_size().x + default_padding,counter_label.m_position.y})
                 .size({32,32})
@@ -90,29 +105,61 @@ int main()
                 .text("+")
                 .font_size(32)
                 .foreground_color(WHITE)
+                .on_pressed( []()
+                {
+                    if(weapons[current_selected_weapon]->total_allowed == weapons[current_selected_weapon]->current_attempt)
+                    {
+                        return;
+                    }
+                    weapons[current_selected_weapon]->current_attempt++;
+                })
+                .on_hover( [&]()
+                {
+                    pos_button.background_color(GREEN);
+                    pos_button.draw();
+                })
         };
         pos_button.draw();
         
-        // 72 - 10 = 62 => 62 / 2 = 31
+        ::Omega::Widget::Button next_weapon_button{
+            ::Omega::Widget::Button()
+                .size({32 + 2 * default_padding, (float)weapons[current_selected_weapon]->texture.height})
+                .position({ screen_width - (32 + 2*default_padding) - default_padding, default_padding })
+                .background_color(BLACK)
+                .text(">>")
+                .font_size(32)
+                .foreground_color(WHITE)
+                .on_hover( [&]()
+                {
+                    const auto weapon{weapons[current_selected_weapon]};
+                    if( weapon->total_allowed != weapon->current_attempt)
+                    {
+                        return;
+                    }
+                    next_weapon_button.background_color(GREEN);
+                    next_weapon_button.draw();
+                })
+                .on_pressed( []()
+                {
+                    const auto weapon{weapons[current_selected_weapon]};
+                    if( weapon->total_allowed != weapon->current_attempt)
+                    {
+                        return;
+                    }
+                    current_selected_weapon++;
+                    if(current_selected_weapon >= 14)
+                    {
+                        current_selected_weapon = 0;
+                    }
+                })
+        };
+        next_weapon_button.draw();
         
-//        DrawFPS(10, 10);
-//        
-//        static int counter{0};
-//        static int current_weapon{0};
-//        ++counter;
-//        if(0 == counter%60)
-//        {
-//            current_weapon++;
-//        }
-        
-
-      
-
         /*
-            i have no idea at the moment how to handle the button presses in a generic way yet. that i
-            will think about and implement that on the next video. maybe i will think/try implment it in a video too. :-)
+            i am still learning and trying to figureout stuff. so this API and the way i handle things might change later. but i am going in IMMEDIATE MODE way. instead of RETAINED MODE.
          */
-
+        ::Omega::Widget::Input::process({&neg_button, &pos_button, &next_weapon_button});
+        
         const auto mouse_pos{GetMousePosition()};
         if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON) &&
            mouse_pos.x > 50 &&
@@ -121,15 +168,8 @@ int main()
            mouse_pos.y < 150 + 32
            )
         {
-            weapons[0]->current_attempt++;
+            weapons[current_selected_weapon]->current_attempt++;
         }
-
-        
-
-//        DrawText(std::format("{} / {}", weapons[current_weapon%14]->current_attempt, weapons[current_weapon%14]->total_allowed).c_str(), 100, 150, 32, RED);
-        
-        
-
 
         EndDrawing();
     }

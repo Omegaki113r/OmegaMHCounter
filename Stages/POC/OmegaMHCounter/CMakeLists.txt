@@ -12,6 +12,8 @@ set(WIDGET_SOURCES
     ${WIDGET_DIR}/container/container.cpp 
     ${WIDGET_DIR}/label/label.cpp
     ${WIDGET_DIR}/button/button.cpp
+
+    ${WIDGET_DIR}/input/input.cpp
 )
 
 add_executable(${PROJECT_NAME} main.cpp ${WIDGET_SOURCES})

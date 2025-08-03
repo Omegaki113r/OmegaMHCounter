@@ -6,19 +6,21 @@ namespace Omega
     {
         Button& Button::position(Vector2 position)
         {
-            m_container.m_position = position;
+            m_position = position;
+            m_container.set_position(position);
             m_should_recalculate = true;
             return *this;
         }
         Button& Button::size(Vector2 size)
         {
-            m_container.m_size = size;
+            m_size = size;
+            m_container.set_size(size);
             m_should_recalculate = true;
             return *this;
         }
         Button& Button::background_color(Color background_color)
         {
-            m_container.m_color = background_color;
+            m_container.set_color(background_color);
             return  *this;
         }
         Button& Button::text(const std::string& text)
@@ -36,6 +38,16 @@ namespace Omega
         Button& Button::foreground_color(Color foreground_color)
         {
             m_label.m_color = foreground_color;
+            return *this;
+        }
+        Button& Button::on_pressed(std::function<void(void)> on_pressed_handler)
+        {
+            m_on_pressed_handler = on_pressed_handler;
+            return *this;
+        }
+        Button& Button::on_hover(std::function<void(void)> on_hover_handler)
+        {
+            m_on_hover_handler = on_hover_handler;
             return *this;
         }
         void Button::draw()
