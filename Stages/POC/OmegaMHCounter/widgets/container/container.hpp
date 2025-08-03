@@ -16,8 +16,8 @@ namespace Omega
             Container& position(Vector2 in_position);
             Container& size(Vector2 in_size);
             Container& color(Color in_color);
-            Container& on_hover(std::function<void(void)> on_pressed_handler) override{}
-            Container& on_pressed(std::function<void(void)> on_pressed_handler) override{}
+            Container& on_hover(std::function<void(void)> on_pressed_handler) override{ return *this; }
+            Container& on_pressed(std::function<void(void)> on_pressed_handler) override{ return *this; }
             
             inline void set_position(Vector2 in_position) { m_position = in_position; }
             inline void set_size(Vector2 in_size) { m_size = in_size; }

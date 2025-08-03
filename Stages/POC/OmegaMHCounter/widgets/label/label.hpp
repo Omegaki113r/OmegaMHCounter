@@ -22,8 +22,8 @@ namespace Omega
             Label& position(Vector2 position);
             Label& color(Color color);
             Label& font_size(int font_size);
-            Label& on_hover(std::function<void(void)> on_hover_handler) override {}
-            Label& on_pressed(std::function<void(void)> on_pressed_handler) override{}
+            Label& on_hover(std::function<void(void)> on_hover_handler) override { return *this; }
+            Label& on_pressed(std::function<void(void)> on_pressed_handler) override{ return *this; }
             
             void measure();
             Vector2 get_measured_size();
