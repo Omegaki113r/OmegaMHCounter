@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_subdirectory(vendor/raylib)
 
+add_library(cJSON STATIC ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cJSON/cJSON.c)
+target_include_directories(cJSON PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cJSON)
+
+
 set(WIDGET_DIR ${CMAKE_CURRENT_SOURCE_DIR}/widgets)
 set(WIDGET_INCLUDE_DIR ${WIDGET_DIR})
 set(WIDGET_SOURCES 
@@ -18,13 +22,15 @@ set(WIDGET_SOURCES
 
 add_executable(${PROJECT_NAME} main.cpp ${WIDGET_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC . ${WIDGET_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} raylib)
+target_link_libraries(${PROJECT_NAME} raylib cJSON)
 
 if(APPLE)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR}/Debug)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.userdata DESTINATION ${CMAKE_BINARY_DIR}/Debug)
     set_target_properties(${PROJECT_NAME} PROPERTIES MACOSX_BUNDLE TRUE)
 elseif(WIN32)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.userdata DESTINATION ${CMAKE_BINARY_DIR})
 endif(APPLE)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY COMPILE_WARNING_AS_ERROR ON)
