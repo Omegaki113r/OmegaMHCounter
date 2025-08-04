@@ -1,0 +1,10 @@
+{
+    "window":
+    {
+        "x": 0,
+        "y":0
+    },
+    "current_weapon_index" : 2,
+    "current_weapon_attempt" : 2,
+    "current_weapon_max_attempt_count" : 5
+}
