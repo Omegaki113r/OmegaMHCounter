@@ -7,6 +7,8 @@ namespace Omega
 {
     namespace Paths
     {
+        constexpr auto SAVE_STATE_PATH{".userdata/savestate"};
+    
         constexpr auto GREAT_SWORD_PATH{"assets/images/weapons/GreatSword.png"};
         constexpr auto SWORD_AND_SHIELD_PATH{"assets/images/weapons/SwordAndShield.png"};
         constexpr auto HAMMER_PATH{"assets/images/weapons/Hammer.png"};
