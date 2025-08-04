@@ -2,8 +2,11 @@
 #include <array>
 #include <string>
 #include <format>
+#include <cstring>
 
 #include <raylib.h>
+
+#include <cJSON.h>
 
 #include "constants.hpp"
 #include "container/container.hpp"
@@ -25,6 +28,8 @@ size_t current_selected_weapon{0};
 std::array<Weapon*,14> weapons;
 
 void load_images_and_textures();
+void load_state();
+void save_state();
 
 int main()
 {
@@ -32,6 +37,7 @@ int main()
     InitWindow(425, 102, "OmegaMHCounter"); // lazy to calculate in head :-)
     
     load_images_and_textures();
+    load_state();
     
     SetTargetFPS(60);
     
@@ -173,6 +179,9 @@ int main()
 
         EndDrawing();
     }
+   
+    save_state();
+    
     CloseWindow();
 }
 
@@ -200,4 +209,60 @@ Weapon::Weapon(const char* in_name, const char* in_path)
     name = in_name;
     image = LoadImage(in_path);
     texture = LoadTextureFromImage(image);
+}
+
+
+void load_state()
+{
+    auto save_state_data{LoadFileText(::Omega::Paths::SAVE_STATE_PATH)};
+    auto root_obj{cJSON_Parse(save_state_data)};
+    if(nullptr != root_obj)
+    {
+        const auto window_obj{cJSON_GetObjectItem(root_obj, "window")};
+        const auto x_position_obj{cJSON_GetObjectItem(window_obj, "x")};
+        const auto y_position_obj{cJSON_GetObjectItem(window_obj, "y")};
+        SetWindowPosition((int)cJSON_GetNumberValue(x_position_obj), (int)cJSON_GetNumberValue(y_position_obj));
+        
+        const auto current_weapon_index_obj{cJSON_GetObjectItem(root_obj, "current_weapon_index")};
+        current_selected_weapon = (size_t)cJSON_GetNumberValue(current_weapon_index_obj);
+        const auto current_weapon_attempt_obj{cJSON_GetObjectItem(root_obj, "current_weapon_attempt")};
+        weapons[current_selected_weapon]->current_attempt = (size_t)cJSON_GetNumberValue(current_weapon_attempt_obj);
+        const auto current_weapon_max_attempt_count_obj{cJSON_GetObjectItem(root_obj, "current_weapon_max_attempt_count")};
+        weapons[current_selected_weapon]->total_allowed = (size_t)cJSON_GetNumberValue(current_weapon_max_attempt_count_obj);
+        cJSON_Delete(root_obj);
+    }
+    UnloadFileText(save_state_data);
+}
+
+void save_state()
+{
+    auto root_obj{cJSON_CreateObject()};
+    
+    const auto window_position{GetWindowPosition()};
+    auto x_position_obj{cJSON_CreateNumber(window_position.x)};
+    auto y_position_obj{cJSON_CreateNumber(window_position.y)};
+    auto window_obj{cJSON_CreateObject()};
+    cJSON_AddItemToObject(window_obj, "x", x_position_obj);
+    cJSON_AddItemToObject(window_obj, "y", y_position_obj);
+    cJSON_AddItemToObject(root_obj, "window", window_obj);
+    
+    
+    
+    auto current_weapon_index_obj{cJSON_CreateNumber(current_selected_weapon)};
+    cJSON_AddItemToObject(root_obj, "current_weapon_index", current_weapon_index_obj);
+    
+    auto current_weapon_attempt_obj{cJSON_CreateNumber(weapons[current_selected_weapon]->current_attempt)};
+    cJSON_AddItemToObject(root_obj, "current_weapon_attempt", current_weapon_attempt_obj);
+    
+    auto current_weapon_max_attempt_count_obj{cJSON_CreateNumber(weapons[current_selected_weapon]->total_allowed)};
+    cJSON_AddItemToObject(root_obj, "current_weapon_max_attempt_count", current_weapon_max_attempt_count_obj);
+    
+    auto unformatted_text{cJSON_PrintUnformatted(root_obj)};
+    if(!SaveFileData(::Omega::Paths::SAVE_STATE_PATH, unformatted_text, (int)std::strlen(unformatted_text)))
+    {
+        printf("Saving data failed\r\n");
+    }
+    free(unformatted_text);
+    
+    cJSON_Delete(root_obj);
 }
